@@ -3,8 +3,8 @@ import PropTypes from "prop-types";
 import AddCard from "../components/Card/AddCard";
 import AddColumn from "../components/Column/AddColumn";
 import { DropTarget } from "react-dnd";
-import { ItemTypes } from "../store/consts";
-// import CardDropHolder from "../containers/CardDropHolder";
+import { DRAG_CARD } from "../store/consts";
+import CardDropHolder from "../containers/CardDropHolder";
 import { connect } from "react-redux";
 import * as actions from "../store/actions";
 
@@ -53,22 +53,23 @@ class Column extends Component {
       addColumn,
       column: { title, cards = [], id } = {}
     } = this.props;
-    return (
+    return connectDropTarget(
       <div className="col-sm-2 columnBox">
         {title && <h5 className="columnTitle"> {title}</h5>}
         <div className="row">
-          {/* {cards.map((item, cardId) => {
+          {cards.map((item, cardId) => {
             return (
               <CardDropHolder
+                columnId={id}
                 dispatch={this.props.dispatch}
-                index={cardId}
+                cardId={cardId}
                 item={item}
                 handleRemoveCard={this.handleRemoveCard(item.id)}
                 parentIndex={this.props.id}
                 key={cardId}
               />
             );
-          })} */}
+          })}
           {this.props.column.title ? (
             <>
               <AddCard columnId={id} addCard={addCard} />
@@ -116,4 +117,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Column);
+)(DropTarget(DRAG_CARD, columnTarget, collect)(Column));

@@ -1,24 +1,18 @@
 import React from "react";
 import { DropTarget } from "react-dnd";
 import PropTypes from "prop-types";
-import { ItemTypes } from "../store/consts";
+import { DRAG_CARD } from "../store/consts";
 import Card from "../components/Card/Card";
-import { swapCard } from "../store/actions";
+import * as actions from "../store/actions";
+import { connect } from "react-redux";
 
 const cardDropTarget = {
   drop(props, monitor) {
     const item = monitor.getItem();
-    const data = {
-      src: {
-        columnId: item.parentIndex,
-        cardId: item.id
-      },
-      target: {
-        columnId: props.parentIndex,
-        cardId: props.id
-      }
-    };
-    swapCard(data.src, data.target);
+    console.log(props, "props");
+    console.log(item, "item");
+    // console.log(item.parentIndex, item.id, props.parentIndex, props.id);
+    props.swapCard(item.columnId, item.cardId, props.columnId, props.cardId);
   },
   canDrop() {
     return true;
@@ -36,31 +30,41 @@ const CardDropHolder = ({
   connectDropTarget,
   item,
   handleRemoveCard,
-  id,
-  parentIndex
+  index,
+  parentIndex,
+  columnId,
+  cardId
 }) =>
   connectDropTarget(
     <div style={{ padding: "5px", opacity: isOver ? 0.5 : 1 }}>
       <Card
+        columnId={columnId}
+        cardId={cardId}
         createdAt={item.createdAt}
         description={item.description}
-        id={id}
+        index={index}
         parentIndex={parentIndex}
         handleRemoveCard={handleRemoveCard}
       />
     </div>
   );
 
-CardDropHolder.defaultProps = {
-  id: undefined,
-  parentIndex: undefined
-};
 CardDropHolder.propTypes = {
   isOver: PropTypes.bool.isRequired,
-
   handleRemoveCard: PropTypes.func.isRequired,
   item: PropTypes.object.isRequired
 };
-// export default DropTarget(ItemTypes.CARD, cardDropTarget, collect)(
-//   CardDropHolder
-// );
+
+const mapStateToProps = () => ({});
+
+const mapDispatchToProps = dispatch => ({
+  swapCard: (srcColumnId, srcCardId, targetColumnId, targetCardId) =>
+    dispatch(
+      actions.swapCard(srcColumnId, srcCardId, targetColumnId, targetCardId)
+    )
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DropTarget(DRAG_CARD, cardDropTarget, collect)(CardDropHolder));

@@ -27,11 +27,22 @@ export const removeColumn = columnId => ({
   payload: columnId
 });
 
-export const swapCard = (src, target) => ({
+export const swapCard = (
+  srcColumnId,
+  srcCardId,
+  targetColumnId,
+  targetCardId
+) => ({
   type: SWAP_CARD,
   payload: {
-    src,
-    target
+    src: {
+      columnId: srcColumnId,
+      cardId: srcCardId
+    },
+    target: {
+      columnId: targetColumnId,
+      cardId: targetCardId
+    }
   }
 });
 export const shiftCard = (src, target) => ({
