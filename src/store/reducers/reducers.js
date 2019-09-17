@@ -8,7 +8,17 @@ import {
   REMOVE_CARD,
   SWAP_CARD
 } from "../consts";
-import initialState from "../state";
+
+export default {
+  columns: [
+    {
+      title: "",
+      cards: []
+    }
+  ],
+  cards: [],
+  card: {}
+};
 
 export default (state = initialState, { type, payload } = {}) => {
   let columns = [].concat(state.columns);
@@ -53,37 +63,41 @@ export default (state = initialState, { type, payload } = {}) => {
       };
     }
 
-    case SHIFT_CARD: {
-      const { srcColumnId, targetColumnId, srcCardId } = payload;
-      if (srcColumnId !== targetColumnId) {
-        const card = Object.assign({}, columns[srcColumnId].cards[srcCardId]);
-        columns[srcColumnId].cards.splice(srcCardId, 1);
-        columns[targetColumnId].cards.push(card);
-        return {
-          ...state,
-          columns
-        };
-      }
-      return state;
+    case MOVE_CARD {
+
     }
 
-    case SWAP_CARD: {
-      const { src, target } = payload;
-      console.log("payload", payload);
-      columns = cloneDeep(state.columns);
-      const tempCardStore = columns.find(({ id }) => id === src.columnId).cards[
-        src.cardId
-      ];
-      console.log(columns.find(column => column.id === src.columnId).cards);
-      console.log(src);
-      columns[src.columnId].cards[src.cardId] =
-        columns[target.columnId].cards[target.cardId];
-      columns[target.columnId].cards[target.cardId] = tempCardStore;
-      return {
-        ...state,
-        columns
-      };
-    }
+    // case SHIFT_CARD: {
+    //   const { srcColumnId, targetColumnId, srcCardId } = payload;
+    //   if (srcColumnId !== targetColumnId) {
+    //     const card = Object.assign({}, columns[srcColumnId].cards[srcCardId]);
+    //     columns[srcColumnId].cards.splice(srcCardId, 1);
+    //     columns[targetColumnId].cards.push(card);
+    //     return {
+    //       ...state,
+    //       columns
+    //     };
+    //   }
+    //   return state;
+    // }
+
+    // case SWAP_CARD: {
+    //   const { src, target } = payload;
+    //   console.log("payload", payload);
+    //   columns = cloneDeep(state.columns);
+    //   const tempCardStore = columns.find(({ id }) => id === src.columnId).cards[
+    //     src.cardId
+    //   ];
+    //   console.log(columns.find(column => column.id === src.columnId).cards);
+    //   console.log(src);
+    //   columns[src.columnId].cards[src.cardId] =
+    //     columns[target.columnId].cards[target.cardId];
+    //   columns[target.columnId].cards[target.cardId] = tempCardStore;
+    //   return {
+    //     ...state,
+    //     columns
+    //   };
+    // }
 
     case REMOVE_CARD: {
       const { cardId, columnId } = payload;
