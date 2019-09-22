@@ -28,7 +28,8 @@ class AddColumn extends Component {
   handleAddColumn = () => {
     const { addColumn } = this.props;
     const { columnName } = this.state;
-    if (!columnName || !columnName.length) {
+
+    if (columnName.trim().length === 0) {
       return false;
     }
     addColumn(columnName);

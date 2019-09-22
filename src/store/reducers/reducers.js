@@ -4,21 +4,12 @@ import {
   ADD_COLUMN,
   REMOVE_COLUMN,
   ADD_CARD,
-  SHIFT_CARD,
+  SWAP_CARD,
   REMOVE_CARD,
-  SWAP_CARD
+  CHANGE_CARD_COLUMN,
+  SWAP_COLUMN
 } from "../consts";
-
-export default {
-  columns: [
-    {
-      title: "",
-      cards: []
-    }
-  ],
-  cards: [],
-  card: {}
-};
+import initialState from "../state";
 
 export default (state = initialState, { type, payload } = {}) => {
   let columns = [].concat(state.columns);
@@ -63,41 +54,60 @@ export default (state = initialState, { type, payload } = {}) => {
       };
     }
 
-    case MOVE_CARD {
+    case SWAP_CARD: {
+      const { source, target } = payload;
+      columns = cloneDeep(state.columns);
+      const sourceColumn = columns.find(({ id }) => id === source.columnId);
+      const sourceCardIndex = source.cardIndex;
+      const sourceCard = sourceColumn.cards[sourceCardIndex];
+      const targetColumn = columns.find(({ id }) => id === target.columnId);
+      const targetCardIndex = sourceColumn.cards.findIndex(
+        ({ id }) => id === target.cardId
+      );
+      const targetCard = sourceColumn.cards[targetCardIndex];
 
+      if (!sourceColumn || !sourceCard || !targetColumn || !targetCard)
+        return state;
+      targetColumn.cards[targetCardIndex] = sourceCard;
+      sourceColumn.cards[sourceCardIndex] = targetCard;
+      return {
+        ...state,
+        columns
+      };
     }
 
-    // case SHIFT_CARD: {
-    //   const { srcColumnId, targetColumnId, srcCardId } = payload;
-    //   if (srcColumnId !== targetColumnId) {
-    //     const card = Object.assign({}, columns[srcColumnId].cards[srcCardId]);
-    //     columns[srcColumnId].cards.splice(srcCardId, 1);
-    //     columns[targetColumnId].cards.push(card);
-    //     return {
-    //       ...state,
-    //       columns
-    //     };
-    //   }
-    //   return state;
-    // }
+    case SWAP_COLUMN: {
+      const { dragIndex, hoverIndex } = payload;
 
-    // case SWAP_CARD: {
-    //   const { src, target } = payload;
-    //   console.log("payload", payload);
-    //   columns = cloneDeep(state.columns);
-    //   const tempCardStore = columns.find(({ id }) => id === src.columnId).cards[
-    //     src.cardId
-    //   ];
-    //   console.log(columns.find(column => column.id === src.columnId).cards);
-    //   console.log(src);
-    //   columns[src.columnId].cards[src.cardId] =
-    //     columns[target.columnId].cards[target.cardId];
-    //   columns[target.columnId].cards[target.cardId] = tempCardStore;
-    //   return {
-    //     ...state,
-    //     columns
-    //   };
-    // }
+      const tmp = columns[dragIndex];
+      columns.splice(dragIndex, 1);
+      columns.splice(hoverIndex, 0, tmp);
+      return {
+        ...state,
+        columns
+      };
+    }
+
+    case CHANGE_CARD_COLUMN: {
+      const { sourceColumnIndex, sourceCardId, targetColumnId } = payload;
+      const targetColumnIndex = state.columns.findIndex(
+        ({ id }) => id === targetColumnId
+      );
+
+      if (sourceColumnIndex !== targetColumnId) {
+        const card = Object.assign(
+          {},
+          columns[sourceColumnIndex].cards[sourceCardId]
+        );
+        columns[sourceColumnIndex].cards.splice(sourceCardId, 1);
+        columns[targetColumnIndex].cards.push(card);
+        return {
+          ...state,
+          columns
+        };
+      }
+      return state;
+    }
 
     case REMOVE_CARD: {
       const { cardId, columnId } = payload;

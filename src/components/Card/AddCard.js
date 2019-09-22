@@ -27,7 +27,7 @@ class AddCard extends React.Component {
   handleAddCard = () => {
     const { addCard, columnId } = this.props;
     const { description } = this.state;
-    if (!description || !description.length) {
+    if (description.trim().length === 0) {
       return false;
     }
     this.handleCloseAddForm();

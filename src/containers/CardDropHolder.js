@@ -1,18 +1,25 @@
 import React from "react";
 import { DropTarget } from "react-dnd";
 import PropTypes from "prop-types";
-import { DRAG_CARD } from "../store/consts";
+import { connect } from "react-redux";
+
 import Card from "../components/Card/Card";
 import * as actions from "../store/actions";
-import { connect } from "react-redux";
 
 const cardDropTarget = {
   drop(props, monitor) {
     const item = monitor.getItem();
-    console.log(props, "props");
-    console.log(item, "item");
-    // console.log(item.parentIndex, item.id, props.parentIndex, props.id);
-    props.swapCard(item.columnId, item.cardId, props.columnId, props.cardId);
+
+    props.changeCardOrder(
+      {
+        columnId: item.columnId,
+        cardIndex: item.id
+      },
+      {
+        columnId: props.columnId,
+        cardId: props.item.id
+      }
+    );
   },
   canDrop() {
     return true;
@@ -30,8 +37,7 @@ const CardDropHolder = ({
   connectDropTarget,
   item,
   handleRemoveCard,
-  index,
-  parentIndex,
+
   columnId,
   cardId
 }) =>
@@ -39,11 +45,9 @@ const CardDropHolder = ({
     <div style={{ padding: "5px", opacity: isOver ? 0.5 : 1 }}>
       <Card
         columnId={columnId}
-        cardId={cardId}
         createdAt={item.createdAt}
         description={item.description}
-        index={index}
-        parentIndex={parentIndex}
+        id={cardId}
         handleRemoveCard={handleRemoveCard}
       />
     </div>
@@ -58,13 +62,11 @@ CardDropHolder.propTypes = {
 const mapStateToProps = () => ({});
 
 const mapDispatchToProps = dispatch => ({
-  swapCard: (srcColumnId, srcCardId, targetColumnId, targetCardId) =>
-    dispatch(
-      actions.swapCard(srcColumnId, srcCardId, targetColumnId, targetCardId)
-    )
+  changeCardOrder: (source, target) =>
+    dispatch(actions.changeCardOrder(source, target))
 });
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(DropTarget(DRAG_CARD, cardDropTarget, collect)(CardDropHolder));
+)(DropTarget("CARD", cardDropTarget, collect)(CardDropHolder));
