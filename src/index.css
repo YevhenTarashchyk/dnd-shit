@@ -13,6 +13,7 @@ body {
   padding: 10px;
   text-align: justify;
   border-radius: 10px;
+  margin-bottom: 10px;
 }
 
 .columnBox {
@@ -23,7 +24,9 @@ body {
   color: floralwhite;
   margin-right: 20px;
 }
-
+.Column--dragging {
+  opacity: 0.5;
+}
 .taskContainer {
   margin-top: 50px;
 }

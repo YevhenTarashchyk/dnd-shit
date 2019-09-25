@@ -5,6 +5,6 @@ export default {
       cards: []
     }
   ],
-  cards: [],
-  card: {}
+
+  placeholder: {}
 };
