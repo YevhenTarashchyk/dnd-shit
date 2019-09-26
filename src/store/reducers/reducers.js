@@ -1,21 +1,23 @@
 import uuid from "uuid/v4";
-
 import cloneDeep from "lodash/cloneDeep";
 import {
   ADD_COLUMN,
   REMOVE_COLUMN,
   ADD_CARD,
+  SWAP_CARD,
   REMOVE_CARD,
-  SWAP_COLUMN,
-  MOVE_CARD,
-  DRAG_CARD_PLACEHOLDER
+  CHANGE_CARD_COLUMN,
+  SWAP_COLUMN
 } from "../consts";
 import initialState from "../state";
 
 export default (state = initialState, { type, payload } = {}) => {
   let columns = [].concat(state.columns);
+<<<<<<< HEAD
   let newState = Object.assign({}, state);
 
+=======
+>>>>>>> parent of e97672f... Almost finished
   switch (type) {
     case ADD_COLUMN: {
       columns[columns.length - 1] = {
@@ -57,9 +59,36 @@ export default (state = initialState, { type, payload } = {}) => {
       };
     }
 
+    case SWAP_CARD: {
+      const { source, target } = payload;
+      columns = cloneDeep(state.columns);
+      const sourceColumn = columns.find(({ id }) => id === source.columnId);
+      const sourceCardIndex = source.cardIndex;
+      const sourceCard = sourceColumn.cards[sourceCardIndex];
+      const targetColumn = columns.find(({ id }) => id === target.columnId);
+      const targetCardIndex = sourceColumn.cards.findIndex(
+        ({ id }) => id === target.cardId
+      );
+      const targetCard = sourceColumn.cards[targetCardIndex];
+
+      if (!sourceColumn || !sourceCard || !targetColumn || !targetCard)
+        return state;
+      targetColumn.cards[targetCardIndex] = sourceCard;
+      sourceColumn.cards[sourceCardIndex] = targetCard;
+      return {
+        ...state,
+        columns
+      };
+    }
+
+<<<<<<< HEAD
+    case DRAG_CARD_PLACEHOLDER: {
+      newState.placeholder = payload;
+      return newState;
+=======
     case SWAP_COLUMN: {
       const { dragIndex, hoverIndex } = payload;
-      columns = cloneDeep(state.columns);
+
       const tmp = columns[dragIndex];
       columns.splice(dragIndex, 1);
       columns.splice(hoverIndex, 0, tmp);
@@ -67,39 +96,28 @@ export default (state = initialState, { type, payload } = {}) => {
         ...state,
         columns
       };
+>>>>>>> parent of e97672f... Almost finished
     }
 
-    case DRAG_CARD_PLACEHOLDER: {
-      newState.placeholder = payload;
-      return newState;
-    }
+    case CHANGE_CARD_COLUMN: {
+      const { sourceColumnIndex, sourceCardId, targetColumnId } = payload;
+      const targetColumnIndex = state.columns.findIndex(
+        ({ id }) => id === targetColumnId
+      );
 
-    case MOVE_CARD: {
-      const { lastColumnId, lastCardPos, nextColumnId, nextCardPos } = payload;
-      columns = cloneDeep(state.columns);
-      const lastColumn = columns.find(column => {
-        return column.id === lastColumnId;
-      });
-
-      const nextColumn = columns.find(column => {
-        return column.id === nextColumnId;
-      });
-
-      if (lastColumnId === nextColumnId) {
-        lastColumn.cards.splice(
-          nextCardPos,
-          0,
-          lastColumn.cards.splice(lastCardPos, 1)[0]
+      if (sourceColumnIndex !== targetColumnId) {
+        const card = Object.assign(
+          {},
+          columns[sourceColumnIndex].cards[sourceCardId]
         );
-      } else {
-        nextColumn.cards.splice(nextCardPos, 0, lastColumn.cards[lastCardPos]);
-        lastColumn.cards.splice(lastCardPos, 1);
+        columns[sourceColumnIndex].cards.splice(sourceCardId, 1);
+        columns[targetColumnIndex].cards.push(card);
+        return {
+          ...state,
+          columns
+        };
       }
-
-      return {
-        ...state,
-        columns
-      };
+      return state;
     }
 
     case REMOVE_CARD: {

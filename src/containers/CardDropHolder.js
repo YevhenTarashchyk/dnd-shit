@@ -1,10 +1,11 @@
-import React, { Component } from "react";
-import { DropTarget, DragSource } from "react-dnd";
+import React from "react";
+import { DropTarget } from "react-dnd";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { findDOMNode } from "react-dom";
+
 import Card from "../components/Card/Card";
 import * as actions from "../store/actions";
+<<<<<<< HEAD
 import cn from "classnames";
 import initialState from "../store/state";
 
@@ -36,11 +37,13 @@ function collect1(connect, monitor) {
     isDragging: monitor.isDragging()
   };
 }
+=======
+>>>>>>> parent of e97672f... Almost finished
 
-// перемещение карточек между колонками !!!
-const CardColumnTarget = {
-  hover(props, monitor, component) {
+const cardDropTarget = {
+  drop(props, monitor) {
     const item = monitor.getItem();
+<<<<<<< HEAD
     const { columnId, cardId, moveCard } = props;
     console.log("props", props);
     console.log("item", item);
@@ -94,53 +97,56 @@ const CardColumnTarget = {
   drop(props, monitor) {
     const { setPlaceholder } = props;
     setPlaceholder(-1, -1, "", -1, -1);
+=======
+
+    props.changeCardOrder(
+      {
+        columnId: item.columnId,
+        cardIndex: item.id
+      },
+      {
+        columnId: props.columnId,
+        cardId: props.item.id
+      }
+    );
+  },
+  canDrop() {
+    return true;
+>>>>>>> parent of e97672f... Almost finished
   }
 };
-function collect2(connect, monitor) {
+function collect(connect, monitor) {
   return {
     connectDropTarget: connect.dropTarget(),
-    isOver: monitor.isOver(),
-    isOverCurrent: monitor.isOver({ shallow: true }),
-    canDrop: monitor.canDrop(),
-    itemType: monitor.getItemType()
+    isOver: monitor.isOver()
   };
 }
 
-class CardDropHolder extends Component {
-  render() {
-    const {
-      connectDropTarget,
-      connectDragSource,
-      item,
-      handleRemoveCard,
-      isDragging,
-      columnId,
-      cardId
-    } = this.props;
-    return connectDragSource(
-      connectDropTarget(
-        <div
-          className={cn("Card", {
-            "Card--dragging": isDragging
-          })}
-        >
-          <Card
-            columnId={columnId}
-            createdAt={item.createdAt}
-            description={item.description}
-            id={cardId}
-            handleRemoveCard={handleRemoveCard}
-          />
-        </div>
-      )
-    );
-  }
-}
+const CardDropHolder = ({
+  isOver,
+  connectDropTarget,
+  item,
+  handleRemoveCard,
+
+  columnId,
+  cardId
+}) =>
+  connectDropTarget(
+    <div style={{ padding: "5px", opacity: isOver ? 0.5 : 1 }}>
+      <Card
+        columnId={columnId}
+        createdAt={item.createdAt}
+        description={item.description}
+        id={cardId}
+        handleRemoveCard={handleRemoveCard}
+      />
+    </div>
+  );
 
 CardDropHolder.propTypes = {
+  isOver: PropTypes.bool.isRequired,
   handleRemoveCard: PropTypes.func.isRequired,
-  item: PropTypes.object.isRequired,
-  currentPlaceholder: PropTypes.number
+  item: PropTypes.object.isRequired
 };
 
 const mapStateToProps = () => ({
@@ -148,33 +154,11 @@ const mapStateToProps = () => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  moveCard: (lastColumnId, lastCardPos, nextColumnId, nextCardPos) =>
-    dispatch(
-      actions.moveCard(lastColumnId, lastCardPos, nextColumnId, nextCardPos)
-    ),
-  setPlaceholder: (
-    currentDragged,
-    placeholderIndex,
-    draggedDir,
-    currentDraggedColumn,
-    originColumn
-  ) =>
-    dispatch(
-      actions.setPlaceholder(
-        currentDragged,
-        placeholderIndex,
-        draggedDir,
-        currentDraggedColumn,
-        originColumn
-      )
-    )
+  changeCardOrder: (source, target) =>
+    dispatch(actions.changeCardOrder(source, target))
 });
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(
-  DragSource(Types.CARD, CardSource, collect1)(
-    DropTarget(Types.CARD, CardColumnTarget, collect2)(CardDropHolder)
-  )
-);
+)(DropTarget("CARD", cardDropTarget, collect)(CardDropHolder));

@@ -1,11 +1,11 @@
 import {
   ADD_COLUMN,
   ADD_CARD,
+  CHANGE_CARD_COLUMN,
   REMOVE_CARD,
   REMOVE_COLUMN,
-  SWAP_COLUMN,
-  MOVE_CARD,
-  DRAG_CARD_PLACEHOLDER
+  SWAP_CARD,
+  SWAP_COLUMN
 } from "./consts.js";
 
 export const addColumn = columnName => ({
@@ -28,6 +28,16 @@ export const removeColumn = columnId => ({
   payload: columnId
 });
 
+export const changeCardOrder = (source, target) => {
+  return {
+    type: SWAP_CARD,
+    payload: {
+      source,
+      target
+    }
+  };
+};
+
 export const changeColumnOrder = (dragIndex, hoverIndex) => {
   return {
     type: SWAP_COLUMN,
@@ -38,38 +48,13 @@ export const changeColumnOrder = (dragIndex, hoverIndex) => {
   };
 };
 
-export const moveCard = (
-  lastColumnId,
-  lastCardPos,
-  nextColumnId,
-  nextCardPos
-) => {
+export const changeCardColumn = (source, targetColumnId) => {
   return {
-    type: MOVE_CARD,
+    type: CHANGE_CARD_COLUMN,
     payload: {
-      lastColumnId,
-      lastCardPos,
-      nextColumnId,
-      nextCardPos
-    }
-  };
-};
-
-export const setPlaceholder = (
-  currentDragged,
-  placeholderIndex,
-  draggedDir,
-  currentDraggedColumn,
-  originColumn
-) => {
-  return {
-    type: DRAG_CARD_PLACEHOLDER,
-    payload: {
-      currentDragged,
-      placeholderIndex,
-      draggedDir,
-      currentDraggedColumn,
-      originColumn
+      sourceColumnIndex: source.columnIndex,
+      sourceCardId: source.cardId,
+      targetColumnId: targetColumnId
     }
   };
 };

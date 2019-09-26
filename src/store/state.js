@@ -5,6 +5,7 @@ export default {
       cards: []
     }
   ],
+<<<<<<< HEAD
 
   placeholder: {
     currentDragged: null,
@@ -13,4 +14,8 @@ export default {
     currentDraggedColumn: null,
     originColumn: null
   }
+=======
+  cards: [],
+  card: {}
+>>>>>>> parent of e97672f... Almost finished
 };
