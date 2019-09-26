@@ -14,7 +14,7 @@ import initialState from "../state";
 
 export default (state = initialState, { type, payload } = {}) => {
   let columns = [].concat(state.columns);
-  let placeholder = Object.assign({}, state.placeholder);
+  let newState = Object.assign({}, state);
 
   switch (type) {
     case ADD_COLUMN: {
@@ -70,11 +70,8 @@ export default (state = initialState, { type, payload } = {}) => {
     }
 
     case DRAG_CARD_PLACEHOLDER: {
-      placeholder = payload;
-      return {
-        ...state,
-        placeholder
-      };
+      newState.placeholder = payload;
+      return newState;
     }
 
     case MOVE_CARD: {

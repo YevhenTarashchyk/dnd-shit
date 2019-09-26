@@ -6,6 +6,7 @@ import { findDOMNode } from "react-dom";
 import Card from "../components/Card/Card";
 import * as actions from "../store/actions";
 import cn from "classnames";
+import initialState from "../store/state";
 
 const Types = {
   CARD: "CARD"
@@ -21,6 +22,12 @@ const CardSource = {
   },
   isDragging(props, monitor) {
     return props.item.id === monitor.getItem().id;
+  },
+  endDrag(props, monitor) {
+    const didDrop = monitor.didDrop();
+    if (!didDrop) {
+      props.setPlaceholder(-1, -1, "", -1);
+    }
   }
 };
 function collect1(connect, monitor) {
@@ -35,12 +42,24 @@ const CardColumnTarget = {
   hover(props, monitor, component) {
     const item = monitor.getItem();
     const { columnId, cardId, moveCard } = props;
-
     console.log("props", props);
     console.log("item", item);
+    const {
+      placeholderIndex,
+      currentDraggedColumn,
+      draggedDir
+    } = props.placeholder;
+
+    if (cardId === item.position && columnId === item.columnId) {
+      if (placeholderIndex > -1) {
+        props.setPlaceholder(-1, -1, "", -1, -1);
+      }
+      return;
+    }
 
     const draggedPosition = item.position;
     const hoverPosition = cardId;
+
     if (!component) return null;
     const hoverBoundingRect = findDOMNode(component).getBoundingClientRect();
     const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
@@ -52,10 +71,29 @@ const CardColumnTarget = {
     if (draggedPosition > hoverPosition && hoverClientY > hoverMiddleY)
       return null;
 
+    const dragDir = hoverClientY < hoverMiddleY ? "up" : "down";
+
+    if (
+      placeholderIndex === cardId &&
+      currentDraggedColumn === columnId &&
+      dragDir === draggedDir
+    )
+      return;
+    props.setPlaceholder(
+      item.position,
+      cardId,
+      dragDir,
+      columnId,
+      item.columnId
+    );
     if (item.id !== props.item.id) {
       moveCard(item.columnId, item.position, columnId, cardId);
     }
     item.position = hoverPosition;
+  },
+  drop(props, monitor) {
+    const { setPlaceholder } = props;
+    setPlaceholder(-1, -1, "", -1, -1);
   }
 };
 function collect2(connect, monitor) {
@@ -105,7 +143,9 @@ CardDropHolder.propTypes = {
   currentPlaceholder: PropTypes.number
 };
 
-const mapStateToProps = () => ({});
+const mapStateToProps = () => ({
+  placeholder: initialState.placeholder
+});
 
 const mapDispatchToProps = dispatch => ({
   moveCard: (lastColumnId, lastCardPos, nextColumnId, nextCardPos) =>
