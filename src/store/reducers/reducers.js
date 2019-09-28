@@ -4,20 +4,16 @@ import {
   ADD_COLUMN,
   REMOVE_COLUMN,
   ADD_CARD,
-  SWAP_CARD,
   REMOVE_CARD,
-  CHANGE_CARD_COLUMN,
-  SWAP_COLUMN
+  SWAP_COLUMN,
+  MOVE_CARD,
+  MOVE_CARD_ON_EMPTY_COLUMN
 } from "../consts";
 import initialState from "../state";
 
 export default (state = initialState, { type, payload } = {}) => {
   let columns = [].concat(state.columns);
-<<<<<<< HEAD
-  let newState = Object.assign({}, state);
 
-=======
->>>>>>> parent of e97672f... Almost finished
   switch (type) {
     case ADD_COLUMN: {
       columns[columns.length - 1] = {
@@ -59,36 +55,9 @@ export default (state = initialState, { type, payload } = {}) => {
       };
     }
 
-    case SWAP_CARD: {
-      const { source, target } = payload;
-      columns = cloneDeep(state.columns);
-      const sourceColumn = columns.find(({ id }) => id === source.columnId);
-      const sourceCardIndex = source.cardIndex;
-      const sourceCard = sourceColumn.cards[sourceCardIndex];
-      const targetColumn = columns.find(({ id }) => id === target.columnId);
-      const targetCardIndex = sourceColumn.cards.findIndex(
-        ({ id }) => id === target.cardId
-      );
-      const targetCard = sourceColumn.cards[targetCardIndex];
-
-      if (!sourceColumn || !sourceCard || !targetColumn || !targetCard)
-        return state;
-      targetColumn.cards[targetCardIndex] = sourceCard;
-      sourceColumn.cards[sourceCardIndex] = targetCard;
-      return {
-        ...state,
-        columns
-      };
-    }
-
-<<<<<<< HEAD
-    case DRAG_CARD_PLACEHOLDER: {
-      newState.placeholder = payload;
-      return newState;
-=======
     case SWAP_COLUMN: {
       const { dragIndex, hoverIndex } = payload;
-
+      columns = cloneDeep(state.columns);
       const tmp = columns[dragIndex];
       columns.splice(dragIndex, 1);
       columns.splice(hoverIndex, 0, tmp);
@@ -96,28 +65,57 @@ export default (state = initialState, { type, payload } = {}) => {
         ...state,
         columns
       };
->>>>>>> parent of e97672f... Almost finished
     }
 
-    case CHANGE_CARD_COLUMN: {
-      const { sourceColumnIndex, sourceCardId, targetColumnId } = payload;
-      const targetColumnIndex = state.columns.findIndex(
-        ({ id }) => id === targetColumnId
-      );
+    case MOVE_CARD_ON_EMPTY_COLUMN: {
+      const { lastColumnId, nextColumnId, cardId } = payload;
+      if (lastColumnId === nextColumnId) return state;
 
-      if (sourceColumnIndex !== targetColumnId) {
-        const card = Object.assign(
-          {},
-          columns[sourceColumnIndex].cards[sourceCardId]
+      columns = cloneDeep(state.columns);
+      const lastColumn = columns.find(column => {
+        return column.id === lastColumnId;
+      });
+
+      const nextColumn = columns.find(column => {
+        return column.id === nextColumnId;
+      });
+
+      const elementPos = lastColumn.cards.map(x => x.id).indexOf(cardId);
+      const removed = lastColumn.cards.splice(elementPos, 1).pop();
+      nextColumn.cards.push(removed);
+
+      return {
+        ...state,
+        columns
+      };
+    }
+
+    case MOVE_CARD: {
+      const { lastColumnId, lastCardPos, nextColumnId, nextCardPos } = payload;
+      columns = cloneDeep(state.columns);
+      const lastColumn = columns.find(column => {
+        return column.id === lastColumnId;
+      });
+
+      const nextColumn = columns.find(column => {
+        return column.id === nextColumnId;
+      });
+
+      if (lastColumnId === nextColumnId) {
+        lastColumn.cards.splice(
+          nextCardPos,
+          0,
+          lastColumn.cards.splice(lastCardPos, 1)[0]
         );
-        columns[sourceColumnIndex].cards.splice(sourceCardId, 1);
-        columns[targetColumnIndex].cards.push(card);
-        return {
-          ...state,
-          columns
-        };
+      } else {
+        nextColumn.cards.splice(nextCardPos, 0, lastColumn.cards[lastCardPos]);
+        lastColumn.cards.splice(lastCardPos, 1);
       }
-      return state;
+
+      return {
+        ...state,
+        columns
+      };
     }
 
     case REMOVE_CARD: {

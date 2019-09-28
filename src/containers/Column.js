@@ -8,71 +8,7 @@ import { findDOMNode } from "react-dom";
 import CardDropHolder from "../containers/CardDropHolder";
 import { connect } from "react-redux";
 import * as actions from "../store/actions";
-
-const Types = {
-  COLUMN: "COLUMN"
-};
-//перемещение самих колонок
-const ColumnSource = {
-  beginDrag(props) {
-    return {
-      index: props.index,
-      column: props.column
-    };
-  }
-};
-function collect1(connect, monitor) {
-  return {
-    connectDragSource: connect.dragSource(),
-    isDragging: monitor.isDragging()
-  };
-}
-
-const ColumnTarget = {
-  canDrop(props, monitor) {
-    return true;
-  },
-  hover(props, monitor, component) {
-    const item = monitor.getItem();
-    console.log("props", props);
-    console.log("item", item);
-    //Событие срабатывает, когда компонент находится выше цели
-    if (!component) return null;
-    const dragIndex = item.index; //перетаскиваемая цель Index
-    const hoverIndex = props.index;
-    //Если цель перетаскивания и идентификатор цели совпадают - без изменений
-    if (dragIndex === props.lastIndex || hoverIndex === props.lastIndex)
-      return null;
-    if (dragIndex === hoverIndex) {
-      return null;
-    }
-    if (item.column.title === "" || props.column.title === "") {
-      return null;
-    }
-
-    const hoverBoundingRect = findDOMNode(component).getBoundingClientRect(); //границы карты
-    const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2; //Получить среднюю точку оси X
-    const clientOffset = monitor.getClientOffset(); //Получить смещение цели перетаскивания
-    const hoverClientX = clientOffset.x - hoverBoundingRect.left;
-    if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) {
-      return null;
-    }
-    if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) {
-      return null;
-    }
-    props.changeColumnOrder(dragIndex, hoverIndex);
-    item.index = hoverIndex;
-  }
-};
-function collect2(connect, monitor) {
-  return {
-    connectDropTarget: connect.dropTarget(),
-    isOver: monitor.isOver(),
-    isOverCurrent: monitor.isOver({ shallow: true }),
-    canDrop: monitor.canDrop(),
-    itemType: monitor.getItemType()
-  };
-}
+import itemTypes from "../store/consts";
 
 class Column extends Component {
   handleRemoveCard = cardId => () => {
@@ -92,11 +28,12 @@ class Column extends Component {
       connectDragSource,
       addCard,
       addColumn,
+      index,
       column: { title, cards = [], id } = {}
     } = this.props;
     let opacity = isDragging ? 0.2 : 1;
-    return connectDragSource(
-      connectDropTarget(
+    return connectDropTarget(
+      connectDragSource(
         <div className="col-sm-2 columnBox" style={{ opacity }}>
           {title && <h5 className="columnTitle"> {title}</h5>}
           <div className="row">
@@ -105,6 +42,7 @@ class Column extends Component {
                 <CardDropHolder
                   columnId={id}
                   cardId={cardId}
+                  columnIndex={index}
                   item={item}
                   handleRemoveCard={this.handleRemoveCard(item.id)}
                   key={cardId}
@@ -131,9 +69,79 @@ class Column extends Component {
   }
 }
 
-Column.propTypes = {
-  isOver: PropTypes.bool.isRequired,
+const ListWithDnD = DropTarget(
+  [itemTypes.COLUMN, itemTypes.CARD],
+  {
+    hover(props, monitor, component) {
+      const targetType = monitor.getItemType();
 
+      if (targetType === itemTypes.COLUMN) {
+        const item = monitor.getItem();
+        const dragIndex = item.index; //перетаскиваемая цель Index
+        const hoverIndex = props.index;
+
+        if (item.column.title === "" || props.column.title === "") {
+          return null;
+        }
+        if (!component) return null;
+        const hoverBoundingRect = findDOMNode(
+          component
+        ).getBoundingClientRect(); //границы карты
+        const hoverMiddleX =
+          (hoverBoundingRect.right - hoverBoundingRect.left) / 2; //Получить среднюю точку оси X
+        const clientOffset = monitor.getClientOffset(); //Получить смещение цели перетаскивания
+        const hoverClientX = clientOffset.x - hoverBoundingRect.left;
+        if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) {
+          return null;
+        }
+        if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) {
+          return null;
+        }
+        if (dragIndex !== hoverIndex) {
+          props.changeColumnOrder(dragIndex, hoverIndex);
+        }
+
+        item.index = hoverIndex;
+      }
+
+      if (targetType === itemTypes.CARD) {
+        const item = monitor.getItem();
+
+        const columnDraggedFrom = item.columnId;
+        const columnDraggedOn = props.column.id;
+        const draggedShit = item.id;
+
+        if (props.column.title !== "" && props.column.cards.length === 0) {
+          props.moveOnEmpty(columnDraggedFrom, columnDraggedOn, draggedShit);
+        }
+      }
+    }
+  },
+  connect => ({
+    connectDropTarget: connect.dropTarget()
+  })
+)(
+  DragSource(
+    itemTypes.COLUMN,
+    {
+      beginDrag(props) {
+        return {
+          index: props.index,
+          column: props.column
+        };
+      },
+      isDragging(props, monitor) {
+        return props.column.id === monitor.getItem().column.id;
+      }
+    },
+    (connect, monitor) => ({
+      connectDragSource: connect.dragSource(),
+      isDragging: monitor.isDragging()
+    })
+  )(Column)
+);
+
+Column.propTypes = {
   removeCard: PropTypes.func.isRequired,
   removeColumn: PropTypes.func.isRequired,
   addCard: PropTypes.func.isRequired,
@@ -149,7 +157,12 @@ const mapDispatchToProps = dispatch => ({
   addCard: (description, columnId) =>
     dispatch(actions.addCard(description, columnId)),
   addColumn: title => dispatch(actions.addColumn(title)),
-
+  moveOnEmpty: (lastColumnId, nextColumnId, cardId) =>
+    dispatch(actions.moveOnEmpty(lastColumnId, nextColumnId, cardId)),
+  moveCard: (lastColumnId, lastCardPos, nextColumnId, nextCardPos) =>
+    dispatch(
+      actions.moveCard(lastColumnId, lastCardPos, nextColumnId, nextCardPos)
+    ),
   changeColumnOrder: (dragIndex, hoverIndex) =>
     dispatch(actions.changeColumnOrder(dragIndex, hoverIndex))
 });
@@ -157,8 +170,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(
-  DragSource(Types.COLUMN, ColumnSource, collect1)(
-    DropTarget(Types.COLUMN, ColumnTarget, collect2)(Column)
-  )
-);
+)(ListWithDnD);
