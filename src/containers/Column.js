@@ -36,7 +36,7 @@ class Column extends Component {
       connectDragSource(
         <div className="col-sm-2 columnBox" style={{ opacity }}>
           {title && <h5 className="columnTitle"> {title}</h5>}
-          <div className="row">
+          <div className="row flex-column">
             {cards.map((item, cardId) => {
               return (
                 <CardDropHolder
@@ -53,6 +53,7 @@ class Column extends Component {
               <>
                 <AddCard columnId={id} addCard={addCard} />
                 <button
+                  style={{ width: "fit-content" }}
                   onClick={this.handleRemoveColumn}
                   className="btn btn-danger btn-sm mt-2"
                 >

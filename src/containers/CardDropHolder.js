@@ -36,11 +36,9 @@ const CardColumnTarget = {
 
     const { columnId, cardId, moveCard } = props;
 
-    // console.log("item", item);
-    // console.log("props", props);
-
     const draggedPosition = item.position;
     const hoverPosition = cardId;
+    const hoverColumnId = columnId;
     if (!component) return null;
     const hoverBoundingRect = findDOMNode(component).getBoundingClientRect();
     const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
@@ -55,6 +53,7 @@ const CardColumnTarget = {
       moveCard(item.columnId, item.position, columnId, cardId);
     }
     item.position = hoverPosition;
+    item.columnId = hoverColumnId;
   }
 };
 function collect2(connect, monitor) {

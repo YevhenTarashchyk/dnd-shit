@@ -1,13 +1,12 @@
 import React from "react";
+import AddIcon from "@material-ui/icons/Add";
+import Fab from "@material-ui/core/Fab";
 
 class AddCard extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isShown: false,
-      description: ""
-    };
-  }
+  state = {
+    isShown: false,
+    description: ""
+  };
 
   handleCloseAddForm = () => {
     this.setState({
@@ -67,12 +66,14 @@ class AddCard extends React.Component {
         {this.state.isShown ? (
           this.addCard()
         ) : (
-          <button
-            className="btn btn-success btn-sm"
+          <Fab
+            size="small"
+            color="secondary"
+            aria-label="add"
             onClick={this.handleShowAddForm}
           >
-            Add a Card
-          </button>
+            <AddIcon />
+          </Fab>
         )}
       </div>
     );

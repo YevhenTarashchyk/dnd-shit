@@ -1,11 +1,12 @@
 body {
   font-family: sans-serif;
-  background-color: #1b6d85;
+  background-color: #4648a8;
 }
 
 .columnTitle {
+  background-color: #227c97;
   color: white;
-  /* font-style: oblique; */
+
   font-size: x-large;
   font-weight: bold;
   text-transform: capitalize;
